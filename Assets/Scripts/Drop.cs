@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DropController : MonoBehaviour {
+public class Drop : MonoBehaviour {
 
 	public int level = 0; 
 	public Vector3 pos = new Vector3 (0, 0, 0);
@@ -15,7 +15,7 @@ public class DropController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		this.transform.position = Vector3.MoveTowards (this.transform.position, pos, Time.deltaTime * 10f);
+		this.transform.position = Vector3.MoveTowards (this.transform.position, pos, Time.deltaTime * (destroyed ? 9f : 12f));
 		moving = (this.pos.x != this.transform.position.x || this.pos.y != this.transform.position.y);
 		if (!moving && destroyed) {
 			Destroy (this.gameObject);

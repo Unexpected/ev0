@@ -17,12 +17,12 @@ public class BoardController : MonoBehaviour {
 
 	List<GameObject> unlocked;
 
-	public DropController[][] grid; 
+	public Drop[][] grid; 
 
 	private GameController gameController;
 
-	private DropController activeDrop1; 
-	private DropController activeDrop2; 
+	private Drop activeDrop1; 
+	private Drop activeDrop2; 
 
 	private System.Random rnd = new System.Random (); 
 
@@ -33,7 +33,7 @@ public class BoardController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (gameController.gameOver) {
+		if (gameController.gameOver || gameController.gamePaused) {
 			return;
 		}
 		if (IsMoving()) {
@@ -53,18 +53,9 @@ public class BoardController : MonoBehaviour {
 				CreateDrops ();
 			}
 		}
-
-		if (Input.GetKeyUp (KeyCode.LeftArrow))
-			Left ();
-		if (Input.GetKeyUp (KeyCode.RightArrow))
-			Right ();
-		if (Input.GetKeyUp (KeyCode.UpArrow))
-			Top ();
-		if (Input.GetKeyUp (KeyCode.DownArrow))
-			Down ();
 	}
 
-	private bool IsMoving() {
+	public bool IsMoving() {
 		for (int y = 0; y < HEIGHT; y++) {
 			for (int x = 0; x < WIDTH; x++) {
 				if (grid [x] [y] != null && grid [x] [y].moving) {
@@ -78,9 +69,9 @@ public class BoardController : MonoBehaviour {
 	public void InitGame() {
 		maxLevel = 0;
 		score = 0;
-		grid = new DropController[WIDTH][];
+		grid = new Drop[WIDTH][];
 		for (int x = 0; x < WIDTH; x++) {
-			grid[x] = new DropController[HEIGHT+3]; 
+			grid[x] = new Drop[HEIGHT+3]; 
 		}
 		InitUnlockedElements ();
 		CreateDrops ();
@@ -90,7 +81,7 @@ public class BoardController : MonoBehaviour {
 		unlocked = new List<GameObject> ();
 		for (int i = 0; i < 13; i++) {
 			GameObject drop = Instantiate (dropPrefabs [i], new Vector3 (7, i*0.9f, 0), Quaternion.identity);
-			drop.GetComponent<DropController> ().pos = new Vector3 (7, i*0.9f, 0);
+			drop.GetComponent<Drop> ().pos = new Vector3 (7, i*0.9f, 0);
 			if (i > 0)
 				drop.GetComponent<SpriteRenderer> ().color = Color.black;
 			unlocked.Add (drop);
@@ -103,31 +94,31 @@ public class BoardController : MonoBehaviour {
 		GameObject leftDrop = Instantiate (dropPrefabs[leftLevel], new Vector3(0, 9.5f, 0), Quaternion.identity);
 		GameObject rightDrop = Instantiate (dropPrefabs[rightLevel], new Vector3(1, 9.5f, 0), Quaternion.identity);
 
-		activeDrop1 = leftDrop.GetComponent<DropController> ();
+		activeDrop1 = leftDrop.GetComponent<Drop> ();
 		activeDrop1.Initialize (leftLevel, 0, 9.5f);
 
-		activeDrop2 = rightDrop.GetComponent<DropController> ();
+		activeDrop2 = rightDrop.GetComponent<Drop> ();
 		activeDrop2.Initialize (rightLevel, 1, 9.5f);
 	}
 
-	void Left() {
+	public void Left() {
 		if (activeDrop1.pos.x == 0 || activeDrop2.pos.x == 0 )
 			return; 
 		activeDrop1.Left (); 
 		activeDrop2.Left (); 
 	}
 
-	void Right() {
+	public void Right() {
 		if (activeDrop1.pos.x == WIDTH - 1 || activeDrop2.pos.x == WIDTH - 1)
 			return; 
 		activeDrop1.Right (); 
 		activeDrop2.Right ();
 	}
 
-	void Top() {
+	public void Top() {
 		if (activeDrop1.pos.x == activeDrop2.pos.x) {
 			// Drop 1 on top of drop 2
-			DropController tmp = activeDrop2;
+			Drop tmp = activeDrop2;
 			activeDrop2 = activeDrop1;
 			activeDrop2.pos.y -= 1;
 			activeDrop2.pos.x += 1;
@@ -138,18 +129,18 @@ public class BoardController : MonoBehaviour {
 		}
 	}
 
-	void Down() {
+	public void Down() {
 		int y1 = HEIGHT + 1; 
 		int y2 = HEIGHT + 1;
 		if (activeDrop1.pos.x == activeDrop2.pos.x) {
 			y1 = HEIGHT + 2;
 		} 
-		DropController[] leftCol = grid[(int) activeDrop1.pos.x]; 
+		Drop[] leftCol = grid[(int) activeDrop1.pos.x]; 
 		leftCol[y1] = activeDrop1; 
 		leftCol [y1].pos.y = y1;
 		activeDrop1 = null; 
 
-		DropController[] rightCol = grid[(int) activeDrop2.pos.x]; 
+		Drop[] rightCol = grid[(int) activeDrop2.pos.x]; 
 		rightCol[y2] = activeDrop2; 
 		rightCol[y2].pos.y  = y2; 
 		activeDrop2 = null; 
@@ -157,9 +148,9 @@ public class BoardController : MonoBehaviour {
 
 	bool Fall() {
 		bool fell = false; 
-		List<DropController> falling = new List<DropController> ();
+		List<Drop> falling = new List<Drop> ();
 		for (int x = 0; x < WIDTH; x++) {
-			DropController[] column = grid [x];
+			Drop[] column = grid [x];
 			int floor = 0;
 			for (int y = 0; y < HEIGHT + 3; y++) {
 				if (column [y] != null) {
@@ -179,43 +170,43 @@ public class BoardController : MonoBehaviour {
 		return fell;
 	}
 
-	private List<DropController> getGroup(DropController drop) {
-		List<DropController> group = new List<DropController> ();
+	private List<Drop> getGroup(Drop drop) {
+		List<Drop> group = new List<Drop> ();
 		group.Add (drop); 
 
-		List<DropController> todo = new List<DropController> ();
+		List<Drop> todo = new List<Drop> ();
 		todo.Add (drop);
 
 		HashSet<int> done = new HashSet<int> ();
 
 		while (todo.Count > 0) {
-			DropController current = todo [0];
+			Drop current = todo [0];
 			todo.RemoveAt (0);
 			int x = (int) current.pos.x; 
 			int y = (int) current.pos.y; 
 			if (y > 0 && grid[x][y-1] != null) {
-				DropController down = grid[x][y-1];
+				Drop down = grid[x][y-1];
 				if (!done.Contains (x + (y-1)*WIDTH) && down.level == drop.level) {
 					group.Add (down);
 					todo.Add (down);
 				}
 			}
 			if (x > 0 && grid[x-1][y] != null) {
-				DropController left = grid[x-1][y];
+				Drop left = grid[x-1][y];
 				if (!done.Contains (x-1+y*WIDTH) && left.level == drop.level) {
 					group.Add (left);
 					todo.Add (left);
 				}
 			}
 			if (x < WIDTH - 1 && grid[x+1][y] != null) {
-				DropController right = grid[x+1][y];
+				Drop right = grid[x+1][y];
 				if (!done.Contains (x+1+y*WIDTH) && right.level == drop.level) {
 					group.Add (right);
 					todo.Add (right);
 				}
 			}
 			if (y < HEIGHT && grid[x][y+1] != null) {
-				DropController top = grid[x][y+1];
+				Drop top = grid[x][y+1];
 				if (!done.Contains (x+(y+1)*WIDTH) && top.level == drop.level) {
 					group.Add (top);
 					todo.Add (top);
@@ -229,17 +220,17 @@ public class BoardController : MonoBehaviour {
 	bool Evolve() {
 		bool evolved = false; 
 		List<int> marked = new List<int> ();
-		List<List<DropController>> evolving = new List<List<DropController>> ();
+		List<List<Drop>> evolving = new List<List<Drop>> ();
 
 		// find evolving groups
 		for (int y = 0; y < HEIGHT; y++) {
 			for (int x = 0; x < WIDTH; x++) {
-				DropController drop = grid [x] [y];
+				Drop drop = grid [x] [y];
 				if (drop == null || marked.Contains (x + y * WIDTH)) {
 					continue;
 				}
-				List<DropController> group = getGroup (drop);
-				foreach (DropController d in group) {
+				List<Drop> group = getGroup (drop);
+				foreach (Drop d in group) {
 					marked.Add (((int)d.pos.x) + ((int)d.pos.y) * WIDTH);
 				}
 				if (group.Count >= 3) {
@@ -248,11 +239,11 @@ public class BoardController : MonoBehaviour {
 			}
 		}
 
-		foreach (List<DropController> group in evolving) {
+		foreach (List<Drop> group in evolving) {
 			int botLeftX = WIDTH; 
 			int botLeftY = HEIGHT;
 			int level = 0;
-			foreach (DropController drop in group) {
+			foreach (Drop drop in group) {
 				int x = (int)drop.pos.x;
 				int y = (int) drop.pos.y;
 				level = drop.level;
@@ -265,7 +256,7 @@ public class BoardController : MonoBehaviour {
 			score += (level + 1) * 10 * group.Count; 
 			scoreText.text = "Score: " + score; 
 
-			foreach (DropController drop in group) {
+			foreach (Drop drop in group) {
 				drop.pos.x = botLeftX;
 				drop.pos.y = botLeftY;
 				drop.destroyed = true;
@@ -274,7 +265,7 @@ public class BoardController : MonoBehaviour {
 			GameObject spawnParticle = Instantiate (spawn, new Vector3(botLeftX, botLeftY, 0), Quaternion.identity);
 			Destroy(spawnParticle, 2);
 			GameObject newDrop = Instantiate (dropPrefabs[level+1], new Vector3(botLeftX, botLeftY, 0), Quaternion.identity);
-			grid[botLeftX][botLeftY] = newDrop.GetComponent<DropController> ();
+			grid[botLeftX][botLeftY] = newDrop.GetComponent<Drop> ();
 			grid[botLeftX][botLeftY].Initialize (level+1, botLeftX, botLeftY);
 			if (level + 1 > maxLevel) {
 				maxLevel = level + 1;
@@ -303,5 +294,6 @@ public class BoardController : MonoBehaviour {
 		}		
 		return false; 
 	}
+
 
 }

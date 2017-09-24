@@ -3,7 +3,13 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - SettingsButton
+  - ContinueButton
+  - NewGameButton
+  - QuitButton
+  - YesButton
+  - NoButton
   layers:
   - Default
   - TransparentFX
@@ -55,4 +61,7 @@ TagManager:
     locked: 0
   - name: Texts
     uniqueID: 57812037
+    locked: 0
+  - name: Modal
+    uniqueID: 2283887601
     locked: 0
