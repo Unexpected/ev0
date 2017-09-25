@@ -123,6 +123,10 @@ public class BoardController : MonoBehaviour {
 			activeDrop2.pos.y -= 1;
 			activeDrop2.pos.x += 1;
 			activeDrop1 = tmp;
+			if (activeDrop2.pos.x == WIDTH) {
+				activeDrop1.pos.x -= 1;
+				activeDrop2.pos.x -= 1;
+			}
 		} else {
 			activeDrop1.pos.y += 1;
 			activeDrop2.pos.x -= 1;
