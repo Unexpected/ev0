@@ -14,9 +14,6 @@ public class GameController : MonoBehaviour {
 	public bool gamePaused;
 	public GameObject gameOverText; 
 
-	private float doubleTapTimer = 0.0f;
-	private int tapCount = 0; 
-
 	private float fingerStartTime  = 0.0f;
 	private Vector2 fingerStartPos = Vector2.zero;
 
@@ -30,6 +27,7 @@ public class GameController : MonoBehaviour {
 		if (instance == null)
 			//if not, set instance to this
 			instance = this;
+
 		//If instance already exists and it's not this:
 		else if (instance != this)
 			//Then destroy this. This enforces our singleton pattern, meaning there can only ever be one instance of a GameManager.
@@ -45,7 +43,6 @@ public class GameController : MonoBehaviour {
 	public void EndGame() {
 		gameOver = true; 
 		gameOverText.SetActive (true);
-
 	}
 
 	// Use this for initialization
@@ -81,21 +78,6 @@ public class GameController : MonoBehaviour {
 			return; 
 		}
 
-		// Detect double touch
-		if (Input.touchCount == 1 && Input.GetTouch (0).phase == TouchPhase.Began)
-			tapCount++;
-		if (tapCount > 0)
-			doubleTapTimer += Time.deltaTime;
-		if (tapCount >= 2) {
-			board.Top ();
-			doubleTapTimer = 0.0f;
-			tapCount = 0;
-		}
-		if (doubleTapTimer > 0.5f) {
-			doubleTapTimer = 0f;
-			tapCount = 0;
-		}
-
 		if (Input.touchCount > 0) {
 			foreach (Touch touch in Input.touches) {
 				switch (touch.phase) {
@@ -128,8 +110,6 @@ public class GameController : MonoBehaviour {
 						}
 
 						if (swipeType.x != 0.0f) {
-							tapCount = 0;
-							doubleTapTimer = 0f;
 							if (swipeType.x > 0.0f) {
 								board.Right ();
 							} else {
@@ -138,8 +118,6 @@ public class GameController : MonoBehaviour {
 						}
 
 						if (swipeType.y != 0.0f) {
-							tapCount = 0;
-							doubleTapTimer = 0f;
 							if (swipeType.y > 0.0f) {
 								board.Top ();
 							} else {
